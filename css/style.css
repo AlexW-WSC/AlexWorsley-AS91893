@@ -1,0 +1,61 @@
+@font-face {
+    font-family: 'LINE Seed';
+    src: url(/fonts/LINE_Seed_JP/LINESeedJP-Regular.ttf) format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'LINE Seed';
+    src: url(/fonts/LINE_Seed_JP/LINESeedJP-Bold.ttf) format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+body {
+    background-color: #F9EEED;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    margin: 0;
+    display: block;
+    font-size: 1em;
+}
+
+.topnav {
+    display: flex;
+    width: 100%;
+    padding: 0 0.5cqh;
+    box-sizing: border-box;
+    height: 4.5vh;
+    border-bottom: 0.3rem solid #6f4c50;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.topnav > div {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    font-size: 1.2em;
+    border-left: 0.3rem solid #6f4c50;
+}
+
+.topnav > div:first-child {
+  border-left: none;
+}
+
+.topnav > div > p {
+    margin: 0;
+    color:#6f4c50;
+    font-family: 'LINE Seed', sans-serif;
+}
+
+.topnav > div > a {
+    text-decoration: none;
+    color: #6f4c50;
+    font-family: 'LINE Seed', sans-serif;
+}
