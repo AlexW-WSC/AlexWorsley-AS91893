@@ -59,3 +59,21 @@ body {
     color: #6f4c50;
     font-family: 'LINE Seed', sans-serif;
 }
+
+#notesBoard {
+    width: 100%;
+    height: calc(100vh - 4.5vh);
+    position: relative;
+    background-color: #F9EEED;
+    margin-top: 1rem;
+}
+
+.note {
+    position: absolute;
+    width: 150px;
+    padding: 1rem;
+    background: #fffacd;
+    border: 2px solid #6f4c50;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
