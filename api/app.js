@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
+const { _ } = require('ajv');
 
 const app = express();
 
@@ -48,4 +49,15 @@ app.post('/api/notes', (req, res) => {
 
     notes.push(newNote);
     res.status(201).json(newNote);
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+    const noteId = req.params.id;
+    const noteIndex = notes.findIndex(note => note.id === noteId);
+
+    if (noteIndex === -1) {
+        return res.status(404).json ({error: 'Not not foundddd, 404....'});
+    }
+    notes.splice(noteIndex, 1);
+    res.status(200).json({ message: 'Note deleted successfully' });
 });

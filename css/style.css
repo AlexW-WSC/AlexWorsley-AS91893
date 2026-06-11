@@ -20,6 +20,7 @@ body {
     margin: 0;
     display: block;
     font-size: 1em;
+    
 }
 
 .topnav {
@@ -50,13 +51,13 @@ body {
 
 .topnav > div > p {
     margin: 0;
-    color:#6f4c50;
+    color:#012622;
     font-family: 'LINE Seed', sans-serif;
 }
 
 .topnav > div > a {
     text-decoration: none;
-    color: #6f4c50;
+    color: #012622;
     font-family: 'LINE Seed', sans-serif;
 }
 
@@ -71,9 +72,38 @@ body {
 .note {
     position: absolute;
     width: 150px;
-    padding: 1rem;
-    background: #fffacd;
+    background: #E6DBF0; /* #b7aebf is darker, #e6dbf0 is lighter */
     border: 2px solid #6f4c50;
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.note > .content {
+    padding: 0.5rem;
+}
+
+.note > .topbox {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #b7aebf;
+    padding: 0.5rem;
+}
+
+
+.note > .topbox > .delete-note {
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 1.5rem;
+    width: 1.5rem;
+    overflow: hidden;
+}
+
+.note > .topbox > .delete-note img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+
 }

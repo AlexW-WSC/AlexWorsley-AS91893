@@ -22,9 +22,105 @@
             <p>Search</p>
         </div>
     </div>
-    
-    <main class="board-container">
-        <div id="board" class="board"></div>
+    </div>
+    <main>
+        <form id="noteForm">
+            <label for="title" class="form-label">Title:</label>
+            <input type="text" id="title" name="title" required>
+            <label for="textContent" class="form-label">Content:</label>
+            <textarea id="textContent" name="textContent" required></textarea>
+            <label for="category" class="form-label">Category:</label>
+            <input type="text" id="category" name="category" value="General">
+            <button type="submit">Create Note</button>
+        </form>
+        <div id="notesBoard" class="board">
+            <div class="note">
+                <div class="topbox">
+                    <h3>Testing</h3>
+                    <button type="button" class="delete-note" data-note-id="1"><img src="/assets/delete_icon.png"></button>
+                </div>
+                <p>This is a simple test note.</p>
+                <span class="category">General</span>
+            </div>
+        </div>
+        <script>
+            document.getElementById('noteForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const title = document.getElementById('title').value;
+                const textContent = document.getElementById('textContent').value;
+                const category = document.getElementById('category').value;
+
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        title: title, 
+                        text_content: textContent, 
+                        x_position: Math.floor(Math.random() * 500), //rand positions for testing, should be set by user in future :3
+                        y_position: Math.floor(Math.random() * 500),
+                        category: category 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to create note');
+                const createdNote = await response.json();
+                console.log('Note created:', createdNote);
+                drawLoadNotes();
+            })
+            
+            document.getElementById('notesBoard').addEventListener('click', async (event) => {
+                const deleteButton = event.target.closest('button.delete-note');
+                if (!deleteButton) return;
+
+                const noteId = deleteButton.dataset.noteId;
+              
+                try {
+                    await deleteNote(noteId);
+                } catch (error) {
+                    console.error('client-side error deleting note:', error);
+                }
+            });
+
+            async function drawLoadNotes() {
+                const response = await fetch('/api/notes');
+                if (!response.ok) throw new Error('Failed to load notes :C');
+                const notes = await response.json();
+                const board = document.getElementById('notesBoard');
+                board.innerHTML = ''; // clear old notes etc
+
+                notes.forEach(note => {
+                    const noteElement = document.createElement('div');
+                    noteElement.className = 'note';
+                    noteElement.id = `note-${note.id}`;
+                    noteElement.style.left = note.x_position + 'px';
+                    noteElement.style.top = note.y_position + 'px';
+                    noteElement.innerHTML = `
+                        <div class="topbox">
+                            <h3>${note.title}</h3>
+                            <button type="button" class="delete-note" data-note-id="${note.id}"><img src="/assets/delete_icon.png"></button>
+                        </div>
+                        <div class="content">
+                            <p>${note.text_content}</p>
+                            <span class="category">${note.category}</span>
+                        </div>`;
+                    board.appendChild(noteElement);
+                });
+            }
+
+            async function deleteNote(noteId) {
+                const response = await fetch(`/api/notes/${noteId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Failed to delete note :C');
+                console.log('Note deleted:', noteId);
+                document.getElementById(`note-${noteId}`)?.remove();
+            }
+
+            drawLoadNotes();
+            setInterval(drawLoadNotes, 5000); // 5s 
+        </script>
     </main>
 </body>
 </html>
