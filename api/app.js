@@ -51,6 +51,10 @@ app.post('/api/notes', (req, res) => {
     res.status(201).json(newNote);
 });
 
+app.patch('/api/notes/:id', (req, res) => {
+    // get note id, patch new position data. do this when you have time please ^^ it's done on the client-side
+});
+
 app.delete('/api/notes/:id', (req, res) => {
     const noteId = req.params.id;
     const noteIndex = notes.findIndex(note => note.id === noteId);

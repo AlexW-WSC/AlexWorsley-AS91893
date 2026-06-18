@@ -106,6 +106,48 @@
                             <span class="category">${note.category}</span>
                         </div>`;
                     board.appendChild(noteElement);
+
+                    noteElement.addEventListener('mousedown', (event) => {
+                        noteElement.style.userSelect = 'none';
+                        const rect = noteElement.getBoundingClientRect();
+                        const offsetX = event.clientX - rect.left;
+                        const offsetY = event.clientY - rect.top;
+
+                    
+
+                        const board = document.getElementById('notesBoard');
+                        const boardRect = board.getBoundingClientRect();
+
+                        function onMouseMove(moveEvent) {
+                            const x = moveEvent.clientX - boardRect.left - offsetX;
+                            const y = moveEvent.clientY - boardRect.top - offsetY;
+                            noteElement.style.left = x + 'px';
+                            noteElement.style.top = y + 'px';
+                        };
+
+                        document.addEventListener('mousemove', onMouseMove);
+
+                        async function onMouseUp() {
+                            noteElement.style.userSelect = 'auto';
+                            document.removeEventListener('mousemove', onMouseMove);
+                            document.removeEventListener('mouseup', onMouseUp);
+
+                            const left = parseInt(noteElement.style.left, 10) || 0;
+                            const top = parseInt(noteElement.style.top, 10) || 0;
+
+                            try {
+                                await fetch(`/api/notes/${note.id}`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ x_position: left, y_position: top })
+                                });
+                            } catch (error) {
+                                console.error('client-side error updating note position :(', error);
+                            }
+                        }
+
+                        document.addEventListener('mouseup', onMouseUp, { once: true });
+                    });
                 });
             }
 
