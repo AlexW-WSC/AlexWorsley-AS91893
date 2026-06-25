@@ -51,8 +51,20 @@ app.post('/api/notes', (req, res) => {
     res.status(201).json(newNote);
 });
 
-app.patch('/api/notes/:id', (req, res) => {
-    // get note id, patch new position data. do this when you have time please ^^ it's done on the client-side
+app.patch('/api/notes/:id', (req, res) => { // come back to this later when it needs more vars.
+    const noteId = req.params.id;
+    const note = notes.find(note => note.id === noteId);
+    
+    if (!note) {
+        return res.status(404).json({ error: 'Note not found, 404....' });
+    }
+
+    const { x_position, y_position } = req.body;
+
+    if (x_position !== undefined) note.x_position = x_position;
+    if (y_position !== undefined) note.y_position = y_position;
+
+    res.status(200).json(note);
 });
 
 app.delete('/api/notes/:id', (req, res) => {
@@ -60,7 +72,7 @@ app.delete('/api/notes/:id', (req, res) => {
     const noteIndex = notes.findIndex(note => note.id === noteId);
 
     if (noteIndex === -1) {
-        return res.status(404).json ({error: 'Not not foundddd, 404....'});
+        return res.status(404).json ({error: 'Note not foundddd, 404....'});
     }
     notes.splice(noteIndex, 1);
     res.status(200).json({ message: 'Note deleted successfully' });

@@ -22,6 +22,14 @@
             <p>Search</p>
         </div>
     </div>
+    <div class="boardUI">
+        <div>
+            <button><img src="/assets/refresh_icon.png" id="refreshButton"></button>
+            <p>•</p>
+            <button><img src="/assets/add_icon.png" id="addNoteButton"></button>
+        </div>
+        
+        
     </div>
     <main>
         <form id="noteForm">
@@ -34,6 +42,7 @@
             <button type="submit">Create Note</button>
         </form>
         <div id="notesBoard" class="board">
+            
             <div class="note">
                 <div class="topbox">
                     <h3>Testing</h3>
@@ -140,7 +149,8 @@
                                     method: 'PATCH',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ x_position: left, y_position: top })
-                                });
+                                    });
+                                console.log('Note position updated:', { id: note.id, x_position: left, y_position: top });
                             } catch (error) {
                                 console.error('client-side error updating note position :(', error);
                             }
@@ -161,7 +171,38 @@
             }
 
             drawLoadNotes();
-            setInterval(drawLoadNotes, 5000); // 5s 
+
+            document.getElementById('refreshButton').addEventListener('click', () => {
+                drawLoadNotes();
+            });
+
+            document.getElementById('addNoteButton').addEventListener('click', () => {
+                const newOverlay = document.createElement('div');
+                newOverlay.className = 'overlay';
+                console.log('overlay created??');
+                newOverlay.innerHTML = `
+                    <div class="noteMenu">
+                        <div class="topbox">
+                            <div>
+                                <img src="/assets/arrow_icon.png" id="closeOverlayButton" style="transform: scaleX(-1);">
+                                <p>• Back</p>
+                            </div>
+                            <div>
+                                <p>New Note</p>
+                            </div>
+                            <div>
+                                <img src="/assets/delete_icon.png" id="deleteOverlayButton">
+                                <p>Delete</p>
+                            </div>
+                        </div>
+                        <div class="content">
+                            <p>testing content</p>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(newOverlay);
+            });
         </script>
     </main>
 </body>
