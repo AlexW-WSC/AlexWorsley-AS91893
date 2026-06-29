@@ -185,19 +185,26 @@
                         <div class="topbox">
                             <div>
                                 <img src="/assets/arrow_icon.png" id="closeOverlayButton" style="transform: scaleX(-1);">
-                                <p>• Back</p>
+                                <p>•</p>
+                                <p>Back</p>
                             </div>
                             <div>
                                 <p>New Note</p>
                             </div>
                             <div>
-                                <img src="/assets/delete_icon.png" id="deleteOverlayButton">
-                                <p>Delete</p>
+                                <p>Confirm</p>
+                                <p>•</p>
+                                <img src="/assets/confirm_icon.png" id="deleteOverlayButton">
                             </div>
                         </div>
                         <div class="content">
-                            <p>testing content</p>
+                            <textarea id="textContent" name="textContent" required></textarea>
                         </div>
+                        <div class="bottombox">
+                            <div>
+                                <p>Category:</p>
+                                <input type="text" id="category" name="category" value="General">
+                            </div>
                     </div>
                 `;
 
