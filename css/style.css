@@ -1,6 +1,7 @@
 :root {
     --topnav-height: 4.5vh;
     --topbox-height:5.5vh;
+    --bottombox-height: 7.5vh;
 }
 
 @font-face {
@@ -28,7 +29,7 @@ body {
     
 }
 
-p, span, a, h3 {
+p, span, a, h3, input, textarea, button {
     font-family: 'LINE Seed', sans-serif;
     color:#012622;
 }
@@ -233,7 +234,18 @@ p, span, a, h3 {
     white-space: nowrap;
 }
 
-.overlay > .noteMenu > .topbox > div > img {
+.overlay > .noteMenu > .topbox > div > button{ 
+    height: 1.8rem;
+    width: 1.8rem;
+    object-fit: contain;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.overlay > .noteMenu > .topbox > div > button > img {
     height: 1.8rem;
     width: 1.8rem;
     object-fit: contain;
@@ -241,7 +253,7 @@ p, span, a, h3 {
 }
 
 .overlay > .noteMenu > .content {
-    height: calc(100% - var(--topbox-height));
+    height: calc(100% - var(--topbox-height) - var(--bottombox-height));
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -255,8 +267,33 @@ p, span, a, h3 {
     resize: none;
     box-sizing: border-box;
     background: none;
-    font-family: 'LINE Seed', sans-serif;
     overflow: scroll;
     white-space: nowrap;
     text-wrap: wrap;
+}
+
+.overlay > .noteMenu > .bottombox {
+    display: flex;
+    background: #b7aebf;
+    align-items: center;
+    font-size: 1.1em;
+    border-top: 0.1rem solid #6f4c50;
+    min-height: var(--bottombox-height);
+}
+
+.overlay > .noteMenu > .bottombox > div {
+    flex: 1;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    background: #b7aebf;
+
+}
+
+.overlay > .noteMenu > .bottombox > div > input {
+    background: #E6DBF0;
+    border: 0.1rem solid #6f4c50;
+    border-radius: 0.3rem;
+
 }

@@ -32,15 +32,6 @@
         
     </div>
     <main>
-        <form id="noteForm">
-            <label for="title" class="form-label">Title:</label>
-            <input type="text" id="title" name="title" required>
-            <label for="textContent" class="form-label">Content:</label>
-            <textarea id="textContent" name="textContent" required></textarea>
-            <label for="category" class="form-label">Category:</label>
-            <input type="text" id="category" name="category" value="General">
-            <button type="submit">Create Note</button>
-        </form>
         <div id="notesBoard" class="board">
             
             <div class="note">
@@ -53,31 +44,6 @@
             </div>
         </div>
         <script>
-            document.getElementById('noteForm').addEventListener('submit', async (event) => {
-                event.preventDefault();
-                const title = document.getElementById('title').value;
-                const textContent = document.getElementById('textContent').value;
-                const category = document.getElementById('category').value;
-
-                const response = await fetch('/api/notes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        title: title, 
-                        text_content: textContent, 
-                        x_position: Math.floor(Math.random() * 500), //rand positions for testing, should be set by user in future :3
-                        y_position: Math.floor(Math.random() * 500),
-                        category: category 
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to create note');
-                const createdNote = await response.json();
-                console.log('Note created:', createdNote);
-                drawLoadNotes();
-            })
             
             document.getElementById('notesBoard').addEventListener('click', async (event) => {
                 const deleteButton = event.target.closest('button.delete-note');
@@ -179,37 +145,80 @@
             document.getElementById('addNoteButton').addEventListener('click', () => {
                 const newOverlay = document.createElement('div');
                 newOverlay.className = 'overlay';
-                console.log('overlay created??');
                 newOverlay.innerHTML = `
                     <div class="noteMenu">
                         <div class="topbox">
                             <div>
-                                <img src="/assets/arrow_icon.png" id="closeOverlayButton" style="transform: scaleX(-1);">
+                                <button type="close">
+                                    <img src="/assets/arrow_icon.png" class="closeOverlayButton" style="transform: scaleX(-1);">
+                                </button>
                                 <p>•</p>
                                 <p>Back</p>
                             </div>
                             <div>
-                                <p>New Note</p>
+                                <input type="text" class="overlay-title" value="New Note" required>
                             </div>
                             <div>
                                 <p>Confirm</p>
                                 <p>•</p>
-                                <img src="/assets/confirm_icon.png" id="deleteOverlayButton">
+                                <button type="submit">
+                                    <img src="/assets/confirm_icon.png" class="confirmNoteButton">
+                                </button>
                             </div>
                         </div>
                         <div class="content">
-                            <textarea id="textContent" name="textContent" required></textarea>
+                            <textarea class="overlay-content" required></textarea>
                         </div>
                         <div class="bottombox">
                             <div>
                                 <p>Category:</p>
-                                <input type="text" id="category" name="category" value="General">
+                                <input type="text" class="overlay-category" value="General">
                             </div>
+                        </div>
                     </div>
                 `;
 
                 document.body.appendChild(newOverlay);
-            });
+                
+                newOverlay.querySelector('.confirmNoteButton').addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const title = newOverlay.querySelector('.overlay-title').value;
+                    const textContent = newOverlay.querySelector('.overlay-content').value;
+                    const category = newOverlay.querySelector('.overlay-category').value;
+
+                const response = await fetch('/api/notes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        title: title, 
+                        text_content: textContent, 
+                        x_position: Math.floor(Math.random() * 500), //rand positions for testing, should be set by user in future :3
+                        y_position: Math.floor(Math.random() * 500),
+                        category: category 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to create note');
+                const createdNote = await response.json();
+                console.log('Note created:', createdNote);
+                drawLoadNotes();
+                newOverlay.remove();
+            })
+
+                // Close button
+                newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {ç
+                    newOverlay.remove();
+                });
+
+                // Close overlay when clicking outside the noteMenu?
+                //newOverlay.addEventListener('click', (event) => {
+                 //   if (event.target === newOverlay) {
+                 //       newOverlay.remove();
+                 //   }
+        //        });
+        });
         </script>
     </main>
 </body>
