@@ -1,7 +1,12 @@
 :root {
+    /* misc css vars */
     --topnav-height: 4.5vh;
     --topbox-height:5.5vh;
     --bottombox-height: 7.5vh;
+    /* colour fallback */
+    --note-colour: #E6DBF0;
+    --note-dark-colour: #b7aebf;
+    --note-outline-color: #6f4c50;
 }
 
 @font-face {
@@ -134,25 +139,96 @@ p, span, a, h3, input, textarea, button {
     border-bottom: 0.3rem solid #6f4c50;
 }
 
+
+
+
 .note {
     position: absolute;
     width: 150px;
-    background: #E6DBF0; /* #b7aebf is darker, #e6dbf0 is lighter */
-    border: 0.1rem solid #6f4c50;
+    background: var(--note-colour, #E6DBF0);
+    border: 0.1rem solid var(--note-outline-color, #6f4c50);
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    transform-origin: top left;
+}
+
+/* default overlay vars */
+.overlay {
+    --note-colour: #E6DBF0;
+    --note-dark-colour: #b7aebf;
+    --note-outline-colour: #6f4c50;
+}
+
+/* Note + overlay category colours */
+.note.subjects,
+.overlay.subjects {
+    --note-colour: #b7aebf;
+    --note-dark-colour: #E6DBF0;
+    --note-outline-colour: #6f4c50;
+}
+
+.note.events,
+.overlay.events {
+    --note-colour: #FFF7CC;
+    --note-dark-colour: #E6C856;
+    --note-outline-colour: #C19E35;
+}
+
+.note.personal,
+.overlay.personal {
+    --note-colour: #D4F0E4;
+    --note-dark-colour: #6FB8A1;
+    --note-outline-colour: #3F7F6A;
+}
+
+
+.overlay > .noteMenu {
+    background: var(--note-colour);
+    border: 0.3rem solid var(--note-outline-colour);
+}
+
+.overlay > .noteMenu > .topbox,
+.overlay > .noteMenu > .topbox > div,
+.overlay > .noteMenu > .bottombox,
+.overlay > .noteMenu > .bottombox > div {
+    background: var(--note-dark-colour);
+    border-color: var(--note-outline-colour);
+}
+
+.overlay > .noteMenu > .topbox > div > input,
+.overlay > .noteMenu > .bottombox > div > input,
+.overlay > .noteMenu > .bottombox > div > select {
+    background: var(--note-colour);
+    border: 0.1rem solid var(--note-outline-colour);
 }
 
 .note > .content {
     padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.note > .content .note-body {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.note > .content .note-image {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+    display: block;
 }
 
 .note > .topbox {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #b7aebf;
+    background: var(--note-dark-colour);
     padding: 0.5rem;
 }
 
@@ -190,8 +266,6 @@ p, span, a, h3, input, textarea, button {
     position: absolute;
     width: 70vh;
     height: 70vh;
-    background: #E6DBF0; /* #b7aebf is darker, #e6dbf0 is lighter */
-    border: 0.3rem solid #6f4c50;
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     overflow: hidden;
@@ -202,9 +276,7 @@ p, span, a, h3, input, textarea, button {
     display: flex;
     align-items: stretch;
     justify-content: center;
-    background: #b7aebf;
     font-size: 1.1em;
-    border-bottom: 0.1rem solid #6f4c50;
     min-height: var(--topbox-height);
 }
 
@@ -215,9 +287,9 @@ p, span, a, h3, input, textarea, button {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
-    background: #b7aebf;
+    background: var(--note-dark-colour);
     font-size: 1.1em;
-    border-right: 0.1rem solid #6f4c50;
+    border-right: 0.1rem solid var(--note-outline-colour);
     padding: 0.2rem 0.4rem;
 }
 
@@ -274,10 +346,10 @@ p, span, a, h3, input, textarea, button {
 
 .overlay > .noteMenu > .bottombox {
     display: flex;
-    background: #b7aebf;
+    background: var(--note-dark-colour);
     align-items: center;
     font-size: 1.1em;
-    border-top: 0.1rem solid #6f4c50;
+    border-top: 0.1rem solid var(--note-outline-colour);
     min-height: var(--bottombox-height);
 }
 
@@ -287,13 +359,13 @@ p, span, a, h3, input, textarea, button {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
-    background: #b7aebf;
+    background: var(--note-dark-colour);
 
 }
 
-.overlay > .noteMenu > .bottombox > div > input {
-    background: #E6DBF0;
-    border: 0.1rem solid #6f4c50;
+.overlay > .noteMenu > .bottombox > div > input, .overlay > .noteMenu > .bottombox > div > select {
+    background: var(--note-colour);
+    border: 0.1rem solid var(--note-outline-colour);
     border-radius: 0.3rem;
 
 }

@@ -58,6 +58,52 @@
                 }
             });
 
+            function escapeHtmlCharacters(value = '') {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function isLikelyImageUrl(url = '') {
+                try {
+                    const parsedUrl = new URL(url);
+                    const pathname = parsedUrl.pathname.toLowerCase();
+                    const extension = pathname.split('.').pop()?.split('?')[0] || '';
+                    const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+
+                    if (imageExtensions.includes(extension)) {
+                        return true;
+                    }
+
+                    const host = parsedUrl.host.toLowerCase();
+                    return host.includes('imgur')
+                        || host.includes('unsplash')
+                        || host.includes('pexels')
+                        || host.includes('flickr')
+                        || host.includes('cloudinary')
+                        || pathname.includes('/image')
+                        || pathname.includes('/images')
+                        || pathname.includes('/img');
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            function renderNoteBodyContent(textContent = '') {
+                const escapedText = escapeHtmlCharacters(textContent).replace(/\r?\n/g, '<br>');
+                return escapedText.replace(/(https?:\/\/[^\s<>"']+)/gi, (match) => {
+                    if (!isLikelyImageUrl(match)) {
+                        return match;
+                    }
+
+                    const safeUrl = escapeHtmlCharacters(match);
+                    return `<img src="${safeUrl}" alt="Embedded image" class="note-image">`;
+                });
+            }
+
             async function drawLoadNotes() {
                 const response = await fetch('/api/notes');
                 if (!response.ok) throw new Error('Failed to load notes :C');
@@ -66,18 +112,29 @@
                 board.innerHTML = ''; // clear old notes etc
 
                 notes.forEach(note => {
+                    
+                    const sizeDict = {
+                        'Small': 0.8,
+                        'Medium': 1.0,
+                        'Large': 1.2,
+                    }
+                    
                     const noteElement = document.createElement('div');
                     noteElement.className = 'note';
                     noteElement.id = `note-${note.id}`;
                     noteElement.style.left = note.x_position + 'px';
                     noteElement.style.top = note.y_position + 'px';
+                    noteElement.style.opacity = note.opacity;
+                    const scale = sizeDict[note.size] || 1.0;
+                    noteElement.style.transform = `scale(${scale})`;
+                    noteElement.classList.add(note.category.toLowerCase());
                     noteElement.innerHTML = `
                         <div class="topbox">
                             <h3>${note.title}</h3>
                             <button type="button" class="delete-note" data-note-id="${note.id}"><img src="/assets/delete_icon.png"></button>
                         </div>
                         <div class="content">
-                            <p>${note.text_content}</p>
+                            <div class="note-body">${renderNoteBodyContent(note.text_content)}</div>
                             <span class="category">${note.category}</span>
                         </div>`;
                     board.appendChild(noteElement);
@@ -172,19 +229,40 @@
                         <div class="bottombox">
                             <div>
                                 <p>Category:</p>
-                                <input type="text" class="overlay-category" value="General">
+                                <select class="overlay-category">
+                                    <option value="Subjects">Subjects</option>
+                                    <option value="Events">Events</option>
+                                    <option value="Personal">Personal</option>
+                                    </select>
+                                <p>Size:</p>
+                                <select class="overlay-size">
+                                    <option value="Small">Small</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Large">Large</option>
+                                </select>
+                                <p>Opacity(%):</p>
+                                <input type="number" class="overlay-opacity" min="0" max="100" value="100">
                             </div>
                         </div>
                     </div>
                 `;
-
                 document.body.appendChild(newOverlay);
+                const categorySelect = newOverlay.querySelector('.overlay-category');
+
+                function updateOverlayClass() {
+                    newOverlay.classList.remove('subjects', 'events', 'personal');
+                    newOverlay.classList.add(categorySelect.value.toLowerCase());
+                }
+
+                updateOverlayClass();
+                categorySelect.addEventListener('change', updateOverlayClass);
                 
                 newOverlay.querySelector('.confirmNoteButton').addEventListener('click', async (event) => {
                     event.preventDefault();
-                    const title = newOverlay.querySelector('.overlay-title').value;
-                    const textContent = newOverlay.querySelector('.overlay-content').value;
+                    const title = newOverlay.querySelector('.overlay-title').value;                    const textContent = newOverlay.querySelector('.overlay-content').value;
                     const category = newOverlay.querySelector('.overlay-category').value;
+                    const size = newOverlay.querySelector('.overlay-size').value;
+                    const opacity = parseFloat(newOverlay.querySelector('.overlay-opacity').value) / 100;
 
                 const response = await fetch('/api/notes', {
                     method: 'POST',
@@ -192,11 +270,13 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ 
-                        title: title, 
-                        text_content: textContent, 
+                        title: title,
+                        text_content: textContent,
                         x_position: Math.floor(Math.random() * 500), //rand positions for testing, should be set by user in future :3
                         y_position: Math.floor(Math.random() * 500),
-                        category: category 
+                        category: category,
+                        size: size,
+                        opacity: opacity
                     })
                 });
 
@@ -208,7 +288,7 @@
             })
 
                 // Close button
-                newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {ç
+                newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {
                     newOverlay.remove();
                 });
 

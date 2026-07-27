@@ -31,9 +31,9 @@ app.get('/api/notes', (req, res) => {
 });
 
 app.post('/api/notes', (req, res) => {
-    const { title, text_content, x_position, y_position, category } = req.body;
+    const { title, text_content, x_position, y_position, category, size, opacity} = req.body;
 
-    if (!title || !text_content || !x_position || !y_position || !category) {
+    if (title == null || text_content == null || x_position == null || y_position == null || category == null || size == null || opacity == null) {
         return res.status(400).json({ error: 'Missing required fields :3' });
     }
 
@@ -45,6 +45,8 @@ app.post('/api/notes', (req, res) => {
         y_position,
         category,
         created_at: new Date().toISOString(),
+        size,
+        opacity
     };
 
     notes.push(newNote);
