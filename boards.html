@@ -104,6 +104,31 @@
                 });
             }
 
+            function getHighestNoteZIndex() {
+                const board = document.getElementById('notesBoard');
+                const notes = board.querySelectorAll('.note');
+                let highestZIndex = 0;
+
+                notes.forEach((existingNote) => {
+                    const zIndex = Number.parseInt(existingNote.style.zIndex, 10) || 0;
+                    if (zIndex > highestZIndex) {
+                        highestZIndex = zIndex;
+                    }
+                });
+
+                return highestZIndex;
+            }
+
+            function bringToTop(noteElement) {
+                const nextNoteZIndex = getHighestNoteZIndex() + 1;
+                noteElement.style.zIndex = String(nextNoteZIndex);
+
+                const overlay = document.querySelector('.overlay');
+                if (overlay) {
+                    overlay.style.zIndex = String(nextNoteZIndex + 1);
+                }
+            }
+
             async function drawLoadNotes() {
                 const response = await fetch('/api/notes');
                 if (!response.ok) throw new Error('Failed to load notes :C');
@@ -111,7 +136,7 @@
                 const board = document.getElementById('notesBoard');
                 board.innerHTML = ''; // clear old notes etc
 
-                notes.forEach(note => {
+                notes.forEach((note, index) => {
                     
                     const sizeDict = {
                         'Small': 0.8,
@@ -125,6 +150,7 @@
                     noteElement.style.left = note.x_position + 'px';
                     noteElement.style.top = note.y_position + 'px';
                     noteElement.style.opacity = note.opacity;
+                    noteElement.style.zIndex = String(index + 1);
                     const scale = sizeDict[note.size] || 1.0;
                     noteElement.style.transform = `scale(${scale})`;
                     noteElement.classList.add(note.category.toLowerCase());
@@ -140,6 +166,7 @@
                     board.appendChild(noteElement);
 
                     noteElement.addEventListener('mousedown', (event) => {
+                        bringToTop(noteElement);
                         noteElement.style.userSelect = 'none';
                         const rect = noteElement.getBoundingClientRect();
                         const offsetX = event.clientX - rect.left;
@@ -247,6 +274,7 @@
                     </div>
                 `;
                 document.body.appendChild(newOverlay);
+                newOverlay.style.zIndex = String(getHighestNoteZIndex() + 1);
                 const categorySelect = newOverlay.querySelector('.overlay-category');
 
                 function updateOverlayClass() {
@@ -259,7 +287,8 @@
                 
                 newOverlay.querySelector('.confirmNoteButton').addEventListener('click', async (event) => {
                     event.preventDefault();
-                    const title = newOverlay.querySelector('.overlay-title').value;                    const textContent = newOverlay.querySelector('.overlay-content').value;
+                    const textContent = newOverlay.querySelector('.overlay-content').value;
+                    const title = newOverlay.querySelector('.overlay-title').value;                    
                     const category = newOverlay.querySelector('.overlay-category').value;
                     const size = newOverlay.querySelector('.overlay-size').value;
                     const opacity = parseFloat(newOverlay.querySelector('.overlay-opacity').value) / 100;
@@ -272,7 +301,7 @@
                     body: JSON.stringify({ 
                         title: title,
                         text_content: textContent,
-                        x_position: Math.floor(Math.random() * 500), //rand positions for testing, should be set by user in future :3
+                        x_position: Math.floor(Math.random() * 500), 
                         y_position: Math.floor(Math.random() * 500),
                         category: category,
                         size: size,
@@ -291,13 +320,6 @@
                 newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {
                     newOverlay.remove();
                 });
-
-                // Close overlay when clicking outside the noteMenu?
-                //newOverlay.addEventListener('click', (event) => {
-                 //   if (event.target === newOverlay) {
-                 //       newOverlay.remove();
-                 //   }
-        //        });
         });
         </script>
     </main>

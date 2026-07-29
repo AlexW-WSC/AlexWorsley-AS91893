@@ -39,6 +39,12 @@ p, span, a, h3, input, textarea, button {
     color:#012622;
 }
 
+img {
+  -webkit-user-drag: none;
+  user-select: none; 
+}
+
+
 .topnav {
     display: flex;
     width: 100%;
@@ -260,10 +266,12 @@ p, span, a, h3, input, textarea, button {
     width: 100%;
     height: calc(100% - var(--topnav-height));
     background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
 }
 
 .overlay > .noteMenu {
-    position: absolute;
+    position: relative;
+    z-index: 1001;
     width: 70vh;
     height: 70vh;
     border-radius: 0.5rem;
