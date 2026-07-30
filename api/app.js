@@ -53,7 +53,7 @@ app.post('/api/notes', (req, res) => {
     res.status(201).json(newNote);
 });
 
-app.patch('/api/notes/:id', (req, res) => { // come back to this later when it needs more vars.
+app.patch('/api/notes/:id', (req, res) => { 
     const noteId = req.params.id;
     const note = notes.find(note => note.id === noteId);
     
@@ -61,10 +61,11 @@ app.patch('/api/notes/:id', (req, res) => { // come back to this later when it n
         return res.status(404).json({ error: 'Note not found, 404....' });
     }
 
-    const { x_position, y_position } = req.body;
+    const { x_position, y_position, opacity } = req.body;
 
     if (x_position !== undefined) note.x_position = x_position;
     if (y_position !== undefined) note.y_position = y_position;
+    if (opacity !== undefined) note.opacity = opacity;
 
     res.status(200).json(note);
 });

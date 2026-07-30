@@ -22,16 +22,29 @@
             <p>Search</p>
         </div>
     </div>
-    <div class="boardUI">
-        <div>
-            <button><img src="/assets/refresh_icon.png" id="refreshButton"></button>
-            <p>•</p>
-            <button><img src="/assets/add_icon.png" id="addNoteButton"></button>
+    <div class="boardUIContainer">
+        <div class="boardUI">
+            <div>
+                <button><img src="/assets/refresh_icon.png" id="refreshButton"></button>
+                <p>•</p>
+                <button><img src="/assets/add_icon.png" id="addNoteButton"></button>
+            </div>
         </div>
-        
-        
+
+        <div class="filterUI">    
+            <select id="categoryFilter" class="categoryfilter">
+                <!--- Categories. base category is 'select a category' in order to not bork it back to 100 for all when the apge reloads.-->
+                <option value="">Select a Category..</option> 
+                <option value="all">All Categories</option>
+                <option value="subjects">Subjects</option>
+                <option value="events">Events</option>
+                <option value="personal">Personal</option>
+            </select> 
+            <input id="opacitySlider" type="range" min="1" max="100" value="100" class="opacitySlider">
+
+        </div>
     </div>
-    <main>
+
         <div id="notesBoard" class="board">
             
             <div class="note">
@@ -44,6 +57,41 @@
             </div>
         </div>
         <script>
+            // JS code for handling note interactions with the API backend~
+            const categoryFilter = document.getElementById('categoryFilter');
+            const opacitySlider = document.getElementById('opacitySlider');
+
+            async function patchNoteOpacity(noteId, opacity) {
+                try {
+                    await fetch(`/api/notes/${noteId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ opacity })
+                    });
+                } catch (error) {
+                    console.error('Failed to persist note opacity:', error);
+                }
+            }
+
+            function applyOpacityFilter() {
+                const selectedCategory = categoryFilter.value;
+                const opacityValue = parseFloat(opacitySlider.value) / 100;
+
+                document.querySelectorAll('.note').forEach((note) => {
+                    const baseOpacity = parseFloat(note.dataset.baseOpacity) || 1;
+                    if (selectedCategory === 'all' || note.classList.contains(selectedCategory)) {
+                        note.style.opacity = opacityValue;
+                        note.dataset.baseOpacity = opacityValue;
+                        patchNoteOpacity(note.dataset.noteId, opacityValue);
+                    } else {
+                        note.style.opacity = baseOpacity;
+                    }
+                });
+            }
+            window.applyOpacityFilter = applyOpacityFilter;
+
+            opacitySlider.addEventListener('input', applyOpacityFilter);
+            categoryFilter.addEventListener('change', applyOpacityFilter);
             
             document.getElementById('notesBoard').addEventListener('click', async (event) => {
                 const deleteButton = event.target.closest('button.delete-note');
@@ -120,12 +168,12 @@
             }
 
             function bringToTop(noteElement) {
-                const nextNoteZIndex = getHighestNoteZIndex() + 1;
-                noteElement.style.zIndex = String(nextNoteZIndex);
+                const nextZIndex = getHighestNoteZIndex() + 1;
+                noteElement.style.zIndex = String(nextZIndex);
 
                 const overlay = document.querySelector('.overlay');
                 if (overlay) {
-                    overlay.style.zIndex = String(nextNoteZIndex + 1);
+                    overlay.style.zIndex = String(nextZIndex + 1);
                 }
             }
 
@@ -147,9 +195,11 @@
                     const noteElement = document.createElement('div');
                     noteElement.className = 'note';
                     noteElement.id = `note-${note.id}`;
+                    noteElement.dataset.noteId = note.id;
                     noteElement.style.left = note.x_position + 'px';
                     noteElement.style.top = note.y_position + 'px';
                     noteElement.style.opacity = note.opacity;
+                    noteElement.dataset.baseOpacity = note.opacity ?? 1;
                     noteElement.style.zIndex = String(index + 1);
                     const scale = sizeDict[note.size] || 1.0;
                     noteElement.style.transform = `scale(${scale})`;
@@ -220,10 +270,10 @@
                 document.getElementById(`note-${noteId}`)?.remove();
             }
 
-            drawLoadNotes();
+            drawLoadNotes().then(applyOpacityFilter);
 
             document.getElementById('refreshButton').addEventListener('click', () => {
-                drawLoadNotes();
+                drawLoadNotes().then(applyOpacityFilter);
             });
 
             document.getElementById('addNoteButton').addEventListener('click', () => {
@@ -312,7 +362,7 @@
                 if (!response.ok) throw new Error('Failed to create note');
                 const createdNote = await response.json();
                 console.log('Note created:', createdNote);
-                drawLoadNotes();
+                drawLoadNotes().then(applyOpacityFilter);
                 newOverlay.remove();
             })
 
