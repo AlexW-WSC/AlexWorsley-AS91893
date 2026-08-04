@@ -33,7 +33,7 @@
 
         <div class="filterUI">    
             <select id="categoryFilter" class="categoryfilter">
-                <!--- Categories. base category is 'select a category' in order to not bork it back to 100 for all when the apge reloads.-->
+                <!--- Categories. base category is 'select a category' in order to not bork it back to 100 for all when the page reloads.-->
                 <option value="">Select a Category..</option> 
                 <option value="all">All Categories</option>
                 <option value="subjects">Subjects</option>
@@ -44,23 +44,21 @@
 
         </div>
     </div>
+        
+    <div class="removeNoteArea">
+    </div>
 
-        <div id="notesBoard" class="board">
-            
-            <div class="note">
-                <div class="topbox">
-                    <h3>Testing</h3>
-                    <button type="button" class="delete-note" data-note-id="1"><img src="/assets/delete_icon.png"></button>
-                </div>
-                <p>This is a simple test note.</p>
-                <span class="category">General</span>
-            </div>
-        </div>
+    <div id="notesBoard" class="board">
+        <!---notes inserted here--> 
+    </div>
+
         <script>
             // JS code for handling note interactions with the API backend~
             const categoryFilter = document.getElementById('categoryFilter');
             const opacitySlider = document.getElementById('opacitySlider');
 
+
+            // Functions to persist note opacity to the backend/make it work
             async function patchNoteOpacity(noteId, opacity) {
                 try {
                     await fetch(`/api/notes/${noteId}`, {
@@ -93,19 +91,27 @@
             opacitySlider.addEventListener('input', applyOpacityFilter);
             categoryFilter.addEventListener('change', applyOpacityFilter);
             
-            document.getElementById('notesBoard').addEventListener('click', async (event) => {
-                const deleteButton = event.target.closest('button.delete-note');
-                if (!deleteButton) return;
 
-                const noteId = deleteButton.dataset.noteId;
-              
+
+            // edit overlay
+            document.getElementById('notesBoard').addEventListener('click', async (event) => {
+                const editButton = event.target.closest('button.edit-note');
+                if (!editButton) return;
+
+                const noteId = editButton.dataset.noteId;
                 try {
-                    await deleteNote(noteId);
-                } catch (error) {
-                    console.error('client-side error deleting note:', error);
+                    const response = await fetch(`/api/notes/${noteId}`);
+                    if (!response.ok) throw new Error('cant get note lmao');
+                    const note = await response.json();
+                    CreateNoteOverlay(false, noteId, note);
+                }
+                catch (error) {
+                    console.error('Failed to get note to edit :P', error);
                 }
             });
 
+            
+            // helper functions to render/escape content and check for any common image/gif urls to embed as images
             function escapeHtmlCharacters(value = '') {
                 return String(value)
                     .replace(/&/g, '&amp;')
@@ -152,6 +158,8 @@
                 });
             }
 
+
+            // i hate you - only way i've found to make sure the note selected stays on top without ruining the overlay z-index
             function getHighestNoteZIndex() {
                 const board = document.getElementById('notesBoard');
                 const notes = board.querySelectorAll('.note');
@@ -177,6 +185,7 @@
                 }
             }
 
+            // the main function that loads the notes from the backend and renders them on the board
             async function drawLoadNotes() {
                 const response = await fetch('/api/notes');
                 if (!response.ok) throw new Error('Failed to load notes :C');
@@ -184,14 +193,17 @@
                 const board = document.getElementById('notesBoard');
                 board.innerHTML = ''; // clear old notes etc
 
+                // iterate between each note
                 notes.forEach((note, index) => {
                     
+                    // hardcoded sht for the note sizes, may improve in future
                     const sizeDict = {
                         'Small': 0.8,
                         'Medium': 1.0,
                         'Large': 1.2,
                     }
                     
+                    // aaaall the note element stuff 
                     const noteElement = document.createElement('div');
                     noteElement.className = 'note';
                     noteElement.id = `note-${note.id}`;
@@ -202,19 +214,21 @@
                     noteElement.dataset.baseOpacity = note.opacity ?? 1;
                     noteElement.style.zIndex = String(index + 1);
                     const scale = sizeDict[note.size] || 1.0;
-                    noteElement.style.transform = `scale(${scale})`;
+                    noteElement.style.setProperty('--note-scale', scale);
                     noteElement.classList.add(note.category.toLowerCase());
+                    // this is the actual note html content - (title, edit, body, category) - need to add date?
                     noteElement.innerHTML = `
                         <div class="topbox">
                             <h3>${note.title}</h3>
-                            <button type="button" class="delete-note" data-note-id="${note.id}"><img src="/assets/delete_icon.png"></button>
+                            <button type="button" class="edit-note" data-note-id="${note.id}"><img src="/assets/edit_icon.png"></button>
                         </div>
                         <div class="content">
                             <div class="note-body">${renderNoteBodyContent(note.text_content)}</div>
                             <span class="category">${note.category}</span>
                         </div>`;
                     board.appendChild(noteElement);
-
+                    
+                    // drag and drop logic, including new removearea detection/opactiy change so you can see notes about to be deleted easily.
                     noteElement.addEventListener('mousedown', (event) => {
                         bringToTop(noteElement);
                         noteElement.style.userSelect = 'none';
@@ -226,24 +240,50 @@
 
                         const board = document.getElementById('notesBoard');
                         const boardRect = board.getBoundingClientRect();
+                        
+                        function isOverlappingRemoveArea(noteElement, removeArea) {
+                            const noteRect = noteElement.getBoundingClientRect();
+                            const removeRect = removeArea.getBoundingClientRect();
 
+                            return (
+                                noteRect.right > removeRect.left &&
+                                noteRect.left < removeRect.right &&
+                                noteRect.bottom > removeRect.top &&
+                                noteRect.top < removeRect.bottom
+                            );
+                        }
+
+                        //headache inducing function WHY IS IT STILL IN PX what am i doing
                         function onMouseMove(moveEvent) {
                             const x = moveEvent.clientX - boardRect.left - offsetX;
                             const y = moveEvent.clientY - boardRect.top - offsetY;
                             noteElement.style.left = x + 'px';
                             noteElement.style.top = y + 'px';
-                        };
+                            const removeArea = document.querySelector('.removeNoteArea');
+                            const isOverRemoveArea = isOverlappingRemoveArea(noteElement, removeArea);
+                            noteElement.classList.toggle('over-remove-area', isOverRemoveArea);
 
+                            const baseOpacity = parseFloat(noteElement.dataset.baseOpacity || noteElement.style.opacity || '1');
+                            noteElement.style.opacity = isOverRemoveArea ? '1' : String(baseOpacity);
+                        }
+
+                        // add the listener for mousemove to handle dragging
                         document.addEventListener('mousemove', onMouseMove);
 
+
+                        //when the mouse is released, no more drag, update position in backend, and if over remove area, delete the note
                         async function onMouseUp() {
                             noteElement.style.userSelect = 'auto';
                             document.removeEventListener('mousemove', onMouseMove);
                             document.removeEventListener('mouseup', onMouseUp);
 
+                            const baseOpacity = parseFloat(noteElement.dataset.baseOpacity || noteElement.style.opacity || '1');
+                            noteElement.style.opacity = String(baseOpacity);
+
                             const left = parseInt(noteElement.style.left, 10) || 0;
                             const top = parseInt(noteElement.style.top, 10) || 0;
 
+                            //patch 
                             try {
                                 await fetch(`/api/notes/${note.id}`, {
                                     method: 'PATCH',
@@ -254,13 +294,23 @@
                             } catch (error) {
                                 console.error('client-side error updating note position :(', error);
                             }
+
+                            //delete 
+                            if (noteElement.classList.contains('over-remove-area')) {
+                                try {
+                                    await deleteNote(note.id);
+                                } catch (error) {
+                                    console.error("couldn't delete note on mouseup:", error);
+                                }
+                            }
                         }
 
                         document.addEventListener('mouseup', onMouseUp, { once: true });
                     });
                 });
             }
-
+            
+            // selfexplanatory
             async function deleteNote(noteId) {
                 const response = await fetch(`/api/notes/${noteId}`, {
                     method: 'DELETE'
@@ -272,105 +322,216 @@
 
             drawLoadNotes().then(applyOpacityFilter);
 
+            // refresh button (top left) to reload notes from backend, mainly just helps me though
             document.getElementById('refreshButton').addEventListener('click', () => {
                 drawLoadNotes().then(applyOpacityFilter);
             });
 
-            document.getElementById('addNoteButton').addEventListener('click', () => {
+            //note overlay for making & updating notes
+            function CreateNoteOverlay(isNew, noteId = null, note = null) {
                 const newOverlay = document.createElement('div');
                 newOverlay.className = 'overlay';
-                newOverlay.innerHTML = `
-                    <div class="noteMenu">
-                        <div class="topbox">
-                            <div>
-                                <button type="close">
-                                    <img src="/assets/arrow_icon.png" class="closeOverlayButton" style="transform: scaleX(-1);">
-                                </button>
-                                <p>•</p>
-                                <p>Back</p>
+
+                if (isNew) {
+                    //overlay html - look at this for default adjustments
+                    newOverlay.innerHTML = `
+                        <div class="noteMenu">
+                            <div class="topbox">
+                                <div>
+                                    <button type="button" class="closeOverlayButton">
+                                        <img src="/assets/arrow_icon.png" style="transform: scaleX(-1);">
+                                    </button>
+                                    <p>•</p>
+                                    <p>Back</p>
+                                </div>
+                                <div>
+                                    <input type="text" class="overlay-title" value="New Note" required>
+                                </div>
+                                <div>
+                                    <p>Confirm</p>
+                                    <p>•</p>
+                                    <button type="button" class="confirmNoteButton">
+                                        <img src="/assets/confirm_icon.png">
+                                    </button>
+                                </div>
                             </div>
-                            <div>
-                                <input type="text" class="overlay-title" value="New Note" required>
+                            <div class="content">
+                                <textarea class="overlay-content" required></textarea>
                             </div>
-                            <div>
-                                <p>Confirm</p>
-                                <p>•</p>
-                                <button type="submit">
-                                    <img src="/assets/confirm_icon.png" class="confirmNoteButton">
-                                </button>
-                            </div>
-                        </div>
-                        <div class="content">
-                            <textarea class="overlay-content" required></textarea>
-                        </div>
-                        <div class="bottombox">
-                            <div>
+                            <div class="bottombox">
                                 <p>Category:</p>
+                                <p>Due Date:</p>
+                                <p>Priority:</p>
+                                <p>Size:</p>
+                                <p>Opacity(%):</p>
+
                                 <select class="overlay-category">
                                     <option value="Subjects">Subjects</option>
                                     <option value="Events">Events</option>
                                     <option value="Personal">Personal</option>
-                                    </select>
-                                <p>Size:</p>
+                                </select>
+                                <input type="date" class="overlay-date">
+                                <select class="overlay-priority">
+                                    <option value="None">None</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
                                 <select class="overlay-size">
                                     <option value="Small">Small</option>
                                     <option value="Medium">Medium</option>
                                     <option value="Large">Large</option>
                                 </select>
-                                <p>Opacity(%):</p>
                                 <input type="number" class="overlay-opacity" min="0" max="100" value="100">
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else {
+                    //you're editing an existing note, need all the info to prefill the overlay
+                    const currentTitle = note?.title || 'Untitled Note';
+                    const currentText = note?.text_content || '';
+                    const currentCategory = note?.category || 'Subjects';
+                    const currentDueDate = note?.due_date || '';
+                    const currentPriority = note?.priority || 'None';
+                    const currentSize = note?.size || 'Medium';
+                    const currentOpacity = note?.opacity != null ? Math.round(Number(note.opacity) * 100) : 100;
+
+                    newOverlay.innerHTML = `
+                        <div class="noteMenu">
+                            <div class="topbox">
+                                <div>
+                                    <button type="button" class="closeOverlayButton">
+                                        <img src="/assets/arrow_icon.png" style="transform: scaleX(-1);">
+                                    </button>
+                                    <p>•</p>
+                                    <p>Back</p>
+                                </div>
+                                <div>
+                                    <input type="text" class="overlay-title" value="${escapeHtmlCharacters(currentTitle)}" required>
+                                </div>
+                                <div>
+                                    <p>Confirm</p>
+                                    <p>•</p>
+                                    <button type="button" class="confirmNoteButton">
+                                        <img src="/assets/confirm_icon.png">
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="content">
+                                <textarea class="overlay-content" required>${escapeHtmlCharacters(currentText)}</textarea>
+                            </div>
+                            <div class="bottombox">
+                                <p>Category:</p>
+                                <p>Due Date:</p>
+                                <p>Priority:</p>
+                                <p>Size:</p>
+                                <p>Opacity(%):</p>
+
+                                <select class="overlay-category">
+                                    <option value="Subjects" ${currentCategory === 'Subjects' ? 'selected' : ''}>Subjects</option>
+                                    <option value="Events" ${currentCategory === 'Events' ? 'selected' : ''}>Events</option>
+                                    <option value="Personal" ${currentCategory === 'Personal' ? 'selected' : ''}>Personal</option>
+                                </select>
+                                <input type="date" class="overlay-date" value="${currentDueDate}">
+                                <select class="overlay-priority">
+                                    <option value="None" ${currentPriority === 'None' ? 'selected' : ''}>None</option>
+                                    <option value="Low" ${currentPriority === 'Low' ? 'selected' : ''}>Low</option>
+                                    <option value="Medium" ${currentPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+                                    <option value="High" ${currentPriority === 'High' ? 'selected' : ''}>High</option>
+                                </select>
+                                <select class="overlay-size">
+                                    <option value="Small" ${currentSize === 'Small' ? 'selected' : ''}>Small</option>
+                                    <option value="Medium" ${currentSize === 'Medium' ? 'selected' : ''}>Medium</option>
+                                    <option value="Large" ${currentSize === 'Large' ? 'selected' : ''}>Large</option>
+                                </select>
+                                <input type="number" class="overlay-opacity" min="0" max="100" value="${currentOpacity}">
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // now in the stuff that's common to both new/edit
                 document.body.appendChild(newOverlay);
                 newOverlay.style.zIndex = String(getHighestNoteZIndex() + 1);
-                const categorySelect = newOverlay.querySelector('.overlay-category');
 
+                //change the overlay to abide by the same colour rules etc as notes, looks cool imo ;3
+                const categorySelect = newOverlay.querySelector('.overlay-category');
                 function updateOverlayClass() {
                     newOverlay.classList.remove('subjects', 'events', 'personal');
                     newOverlay.classList.add(categorySelect.value.toLowerCase());
                 }
 
-                updateOverlayClass();
-                categorySelect.addEventListener('change', updateOverlayClass);
-                
-                newOverlay.querySelector('.confirmNoteButton').addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    const textContent = newOverlay.querySelector('.overlay-content').value;
-                    const title = newOverlay.querySelector('.overlay-title').value;                    
-                    const category = newOverlay.querySelector('.overlay-category').value;
-                    const size = newOverlay.querySelector('.overlay-size').value;
-                    const opacity = parseFloat(newOverlay.querySelector('.overlay-opacity').value) / 100;
+                if (categorySelect) {
+                    updateOverlayClass();
+                    categorySelect.addEventListener('change', updateOverlayClass);
+                }
 
-                const response = await fetch('/api/notes', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ 
-                        title: title,
-                        text_content: textContent,
-                        x_position: Math.floor(Math.random() * 500), 
-                        y_position: Math.floor(Math.random() * 500),
-                        category: category,
-                        size: size,
-                        opacity: opacity
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to create note');
-                const createdNote = await response.json();
-                console.log('Note created:', createdNote);
-                drawLoadNotes().then(applyOpacityFilter);
-                newOverlay.remove();
-            })
-
-                // Close button
+                // top left x on overlay 
                 newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {
                     newOverlay.remove();
                 });
-        });
+
+                // top right tick on overlay
+                newOverlay.querySelector('.confirmNoteButton').addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const textContent = newOverlay.querySelector('.overlay-content').value;
+                    const title = newOverlay.querySelector('.overlay-title').value;
+                    const category = newOverlay.querySelector('.overlay-category').value;
+                    const dueDate = newOverlay.querySelector('.overlay-date').value;
+                    const priority = newOverlay.querySelector('.overlay-priority').value;
+                    const size = newOverlay.querySelector('.overlay-size').value;
+                    const opacity = parseFloat(newOverlay.querySelector('.overlay-opacity').value) / 100;
+
+                    //post(new) or patch(edit)
+                    try {
+                        if (isNew) {
+                            const response = await fetch('/api/notes', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    title,
+                                    text_content: textContent,
+                                    x_position: Math.floor(Math.random() * 500),
+                                    y_position: Math.floor(Math.random() * 500),
+                                    category,
+                                    due_date: dueDate,
+                                    priority,
+                                    size,
+                                    opacity
+                                })
+                            });
+
+                            if (!response.ok) throw new Error('Failed to create note');
+                            drawLoadNotes().then(applyOpacityFilter);
+                        } else {
+                            const response = await fetch(`/api/notes/${noteId}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    title,
+                                    text_content: textContent,
+                                    category,
+                                    due_date: dueDate,
+                                    priority,
+                                    size,
+                                    opacity
+                                })
+                            });
+
+                            if (!response.ok) throw new Error('Failed to update note');
+                        }
+                        drawLoadNotes().then(applyOpacityFilter);
+                        newOverlay.remove();
+                    } catch (error) {
+                        console.error('Note overlay save failed:', error);
+                    }
+                });
+            }
+
+            //create overlay (new = true)
+            document.getElementById('addNoteButton').addEventListener('click', () => {
+                CreateNoteOverlay(true);
+            });
         </script>
     </main>
 </body>

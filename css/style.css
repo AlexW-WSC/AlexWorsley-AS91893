@@ -9,6 +9,8 @@
     --note-outline-color: #6f4c50;
 }
 
+/* font-face for LINE Seed JP */
+
 @font-face {
     font-family: 'LINE Seed';
     src: url(/fonts/LINE_Seed_JP/LINESeedJP-Regular.ttf) format('truetype');
@@ -22,6 +24,8 @@
     font-weight: 700;
     font-style: normal;
 }
+
+/* core css styles */
 
 html, body {
     height: 100%;
@@ -55,6 +59,7 @@ img {
   user-select: none; 
 }
 
+/* top navbar styles */
 
 .topnav {
     display: flex;
@@ -92,11 +97,12 @@ img {
     font-family: 'LINE Seed', sans-serif;
 }
 
+/* next layer of UI - board and filter */
+
 .boardUIContainer {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
-    gap: 1rem;
     box-sizing: border-box;
     width: 100%;
     flex-wrap: wrap;
@@ -104,7 +110,7 @@ img {
 
 .filterUI {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0.5rem;
     margin-left: auto;
     border-bottom: 0.3rem solid #6f4c50;
@@ -114,6 +120,18 @@ img {
     min-width: 220px;
     width: auto;
 }
+
+.filterUI select {
+    background-color: #F9EEED;
+    border: 0.1rem solid #6f4c50;
+    border-radius: 0.3rem;
+    padding: 0.2rem 0.5rem;
+}
+
+.filterUI .opacitySlider {
+    accent-color: #012622;
+} 
+
 
 .boardUI {
     display: flex;
@@ -169,6 +187,9 @@ img {
     object-fit: contain;
     display: block;
 }
+
+/* main board from here down */
+
 #notesBoard {
     width: 100%;
     height: 100%;
@@ -182,10 +203,34 @@ img {
     overflow: auto;
 }
 
+.removeNoteArea {
+    border-top: 0.3rem solid #d62839;
+    border-left: 0.3rem solid #d62839;
+    border-right: 0.3rem solid #6f4c50;
+    border-bottom: 0.3rem solid #6f4c50;
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+    z-index: 1;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 25vw;
+    height: 15vh;
+    background-image: linear-gradient(45deg, #d62839 25%, transparent 25%, transparent 50%, #d62839 50%, #d62839 75%, transparent 75%, #F9EEED);
+    background-size: 1.4rem 1.4rem;
+    display: block;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; 
+    opacity: 0.75;
+}
 
-
+/* note styles */
 
 .note {
+    --note-scale: 1;
     position: absolute;
     width: 150px;
     background: var(--note-colour, #E6DBF0);
@@ -193,13 +238,53 @@ img {
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    transform-origin: top left;
     cursor: grab;
+    transition: opacity 0.2s ease, filter 0.2s ease;
+
+    transform: scale(var(--note-scale, 1)), rotate(var(--note-rotation, 0deg));
+    transform-origin: top left;
 }
+
 
 /* change cursor to grabbing when the note is being dragged */
 .note:active {
     cursor: grabbing;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* remove area shenanigans */
+
+.note.over-remove-area {
+  position: relative;
+  opacity: 1;
+  -webkit-filter: brightness(0.9) saturate(1.15);
+  filter: brightness(0.9) saturate(1.15);
+  animation: shake 0.35s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(-0.08rem, -0.1rem) rotate(-0.4deg); }
+  50% { transform: translate(0.08rem, 0.1rem) rotate(0.4deg); }
+  75% { transform: translate(-0.04rem, -0.05rem) rotate(-0.2deg); }
+}
+.note.over-remove-area::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+  background: rgba(253, 62, 65, 0.91);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+/*make this later */
+.note.removeAnimation {
+    color: 0;
 }
 
 /* default overlay vars */
@@ -209,7 +294,7 @@ img {
     --note-outline-colour: #6f4c50;
 }
 
-/* Note + overlay category colours */
+/* note + overlay category colours */
 .note.subjects,
 .overlay.subjects {
     --note-colour: #b7aebf;
@@ -237,6 +322,8 @@ img {
     border: 0.3rem solid var(--note-outline-colour);
 }
 
+/* bad code */
+
 .overlay > .noteMenu > .topbox,
 .overlay > .noteMenu > .topbox > div,
 .overlay > .noteMenu > .bottombox,
@@ -251,6 +338,8 @@ img {
     background: var(--note-colour);
     border: 0.1rem solid var(--note-outline-colour);
 }
+
+/* note content styles */
 
 .note > .content {
     padding: 0.5rem;
@@ -274,16 +363,26 @@ img {
     display: block;
 }
 
+/* note topbox */
+
 .note > .topbox {
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: var(--note-dark-colour);
     padding: 0.5rem;
+    box-sizing: border-box;
 }
 
+.note > .topbox > h3 {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
 
-.note > .topbox > .delete-note {
+.note > .topbox > .edit-note {
     background: none;
     border: none;
     cursor: pointer;
@@ -292,12 +391,14 @@ img {
     overflow: hidden;
 }
 
-.note > .topbox > .delete-note img {
+.note > .topbox > .edit-note img {
     height: 100%;
     width: 100%;
     object-fit: contain;
 
 }
+
+/* overlay styles */
 
 
 .overlay {
@@ -314,8 +415,8 @@ img {
 
 .overlay > .noteMenu {
     position: absolute;
-    width: 70vh;
-    height: 70vh;
+    width: 40vw;
+    height: 80vh;
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     overflow: hidden;
@@ -395,27 +496,33 @@ img {
 }
 
 .overlay > .noteMenu > .bottombox {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.1rem;
     background: var(--note-dark-colour);
     align-items: center;
+    justify-items: center;
+    align-content: space-evenly;
     font-size: 1.1em;
     border-top: 0.1rem solid var(--note-outline-colour);
-    min-height: var(--bottombox-height);
+    height: var(--bottombox-height);
+    overflow: hidden;
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
 }
 
-.overlay > .noteMenu > .bottombox > div {
-    flex: 1;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-    background: var(--note-dark-colour);
-
+.overlay > .noteMenu > .bottombox > * {
+    margin: 0;
 }
 
-.overlay > .noteMenu > .bottombox > div > input, .overlay > .noteMenu > .bottombox > div > select {
+.overlay > .noteMenu > .bottombox > div > input,
+.overlay > .noteMenu > .bottombox > div > select,
+.overlay > .noteMenu > .bottombox > div > textarea {
     background: var(--note-colour);
     border: 0.1rem solid var(--note-outline-colour);
     border-radius: 0.3rem;
+    padding: 0.25rem 0.4rem;
+    width: 100%;
+    box-sizing: border-box;
 
 }
