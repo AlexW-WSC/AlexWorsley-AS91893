@@ -15,8 +15,8 @@
             <p>•</p>
             <a>Docs</a>
         </div>
-        <div>
-            <p>Username</p>
+        <div>   
+            <button id="userOverlayButton">Sign Up & Sign In</button>
         </div>
         <div>
             <p>Search</p>
@@ -532,6 +532,46 @@
             document.getElementById('addNoteButton').addEventListener('click', () => {
                 CreateNoteOverlay(true);
             });
+
+        
+            document.getElementById('userOverlayButton').addEventListener('click', () => {
+                CreateUserOverlay();
+            });
+
+            function CreateUserOverlay() {
+                const newOverlay = document.createElement('div');
+                newOverlay.className = 'overlay';
+
+                newOverlay.innerHTML = `
+                <div class="userMenu">
+                    <div class="topbox">
+                        <div>
+                            <button type="button" class="closeOverlayButton">
+                                <img src="/assets/arrow_icon.png" style="transform: scaleX(-1);">
+                            </button>
+                            <p>•</p>
+                            <p>Back</p>
+                        </div>
+                        <div>
+                            <h2>User Authentication</h2>
+                        </div>
+                    </div>
+                    <div class="content">
+                        <form id="userForm">
+                            <label for="username">Username:</label>
+                            <input type="text" id="username" name="username" required>
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" name="password" required>
+                        </form>
+                    </div>
+                    <div class="bottombox">
+                        <button type="button">Submit</button>
+                    </div>
+                </div>
+                `;
+                document.body.appendChild(newOverlay);
+                newOverlay.style.zIndex = String(getHighestNoteZIndex() + 1);
+            }
         </script>
     </main>
 </body>

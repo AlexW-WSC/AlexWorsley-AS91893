@@ -3,6 +3,9 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const { _ } = require('ajv');
+const fs = require('fs');
+
+
 
 const app = express();
 
@@ -10,16 +13,12 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..')));
 
-//note storage
-const notes = [];
-
 
 //status endpoint
 app.get('/status', (req, res) => {
     res.json({
         status: 'Running',
-        timestamp: new Date().toISOString(),
-        title: "NoticeBoard API by d4rkstar! nice to see you here :3",
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -29,8 +28,59 @@ app.listen(PORT, () => {
 });
 
 
+//note storage
+const notes = [];
 
-// /api/notes endpoints
+//user storage
+let users = {};
+
+// load users from file!
+const usersFile = path.join(__dirname, 'users.json');
+try {
+    if (fs.existsSync(usersFile)) {
+        users = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    }
+}
+catch (error) {
+    console.error('No users.json file found, gotta make a new one~')
+
+}
+
+// function to save users to file
+function saveUsersToFile() {
+    const tmp = usersFile + '.tmp';
+    try {
+        fs.writeFileSync(tmp, JSON.stringify(users, null, 2), 'utf-8');
+        fs.renameSync(tmp, usersFile);
+
+    }
+    catch (error) {
+        console.error('Error saving users to file:', error);
+    }
+}
+
+//user endpoints
+app.get('/api/users', (req, res) => {
+    res.json(users);
+});
+
+app.post('/api/users/register', (req, res) => {
+    const {username, password} = req.body;
+
+    if (!username || !password) {
+        return res.status(400).json( { error: 'Bad request: missing user/password' });
+        i
+    }
+});
+
+
+
+
+
+
+
+// note endpoints!
+
 app.get('/api/notes', (req, res) => {
     res.json(notes);
 });

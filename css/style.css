@@ -333,10 +333,11 @@ img {
 }
 
 .overlay > .noteMenu > .topbox > div > input,
-.overlay > .noteMenu > .bottombox > div > input,
-.overlay > .noteMenu > .bottombox > div > select {
+.overlay > .noteMenu > .bottombox > input,
+.overlay > .noteMenu > .bottombox > select {
     background: var(--note-colour);
     border: 0.1rem solid var(--note-outline-colour);
+    border-radius: 0.3rem;
 }
 
 /* note content styles */
@@ -405,11 +406,10 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    position: fixed;
-    top: var(--topnav-height);
+    position: fixed;;
     left: 0;
     width: 100%;
-    height: calc(100% - var(--topnav-height));
+    height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -501,7 +501,6 @@ img {
     gap: 0.1rem;
     background: var(--note-dark-colour);
     align-items: center;
-    justify-items: center;
     align-content: space-evenly;
     font-size: 1.1em;
     border-top: 0.1rem solid var(--note-outline-colour);
@@ -525,4 +524,22 @@ img {
     width: 100%;
     box-sizing: border-box;
 
+}
+
+.overlay > .userMenu {
+    position: absolute;
+    width: 40vw;
+    height: 80vh;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    background-color: var(--note-colour);
+}
+
+.overlay > .userMenu > .topbox {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    font-size: 1.1em;
+    min-height: var(--topbox-height);
 }
