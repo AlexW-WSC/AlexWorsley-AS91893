@@ -547,13 +547,20 @@
                     <div class="topbox">
                         <div>
                             <button type="button" class="closeOverlayButton">
-                                <img src="/assets/arrow_icon.png" style="transform: scaleX(-1);">
+                                <img src="/assets/arrow_icon.png" style="transform: scaleX(-1);" class="closeOverlayButton">
                             </button>
                             <p>•</p>
                             <p>Back</p>
                         </div>
                         <div>
-                            <h2>User Authentication</h2>
+                            <p>User Authentication</p>
+                        </div>
+                        <div>
+                            <p> Signing Up</p>
+                            <p>•</p>
+                            <button type="button" class="swapUserFormButton">
+                                <img src="/assets/swap_icon.png">
+                            </button>
                         </div>
                     </div>
                     <div class="content">
@@ -565,12 +572,47 @@
                         </form>
                     </div>
                     <div class="bottombox">
-                        <button type="button">Submit</button>
+                        <button type="button" class="submitUserButton">Sign Up</button>
                     </div>
                 </div>
                 `;
                 document.body.appendChild(newOverlay);
                 newOverlay.style.zIndex = String(getHighestNoteZIndex() + 1);
+
+                const userForm = newOverlay.querySelector('#userForm');
+                const submitButton = newOverlay.QuerySelector('.submitUserButton');
+
+                submitButton.addEventListener('click'), async (event) => {
+                    event.preventDefault();
+
+                    const formData = new FormData(userForm);
+                    const info = {
+                        username: formData.get('username'),
+                        password: formData.get('password'),
+                    };
+
+                    try {
+                        const response = await fetch('/api/users/register', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(info),
+
+                        });
+
+                        if (!response.ok) {
+                            throw new Error("signup failed at backend");
+                        }
+
+                        // CODING HERE RN
+                    }
+                    catch (err) {
+
+                    }
+                }
+
+                newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {
+                    newOverlay.remove();
+                });
             }
         </script>
     </main>

@@ -69,7 +69,6 @@ app.post('/api/users/register', (req, res) => {
 
     if (!username || !password) {
         return res.status(400).json( { error: 'Bad request: missing user/password' });
-        i
     }
 });
 
