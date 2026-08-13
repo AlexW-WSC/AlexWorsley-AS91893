@@ -556,7 +556,7 @@
                             <p>User Authentication</p>
                         </div>
                         <div>
-                            <p> Signing Up</p>
+                            <p class="userStateDialog"> Signing Up</p>
                             <p>•</p>
                             <button type="button" class="swapUserFormButton">
                                 <img src="/assets/swap_icon.png">
@@ -570,6 +570,7 @@
                             <label for="password">Password:</label>
                             <input type="password" id="password" name="password" required>
                         </form>
+                        <p>Placeholder Text</p>
                     </div>
                     <div class="bottombox">
                         <button type="button" class="submitUserButton">Sign Up</button>
@@ -580,35 +581,61 @@
                 newOverlay.style.zIndex = String(getHighestNoteZIndex() + 1);
 
                 const userForm = newOverlay.querySelector('#userForm');
-                const submitButton = newOverlay.QuerySelector('.submitUserButton');
+                const swapUserButton = newOverlay.querySelector('.swapUserFormButton')
+                const submitButton = newOverlay.querySelector('.submitUserButton');
+                let authMode = 'register';
+                
+                swapUserButton.addEventListener('click', () => {
+                    // if authmode is register set it to login, otherwise register
+                    const userStateDialog = newOverlay.querySelector('.userStateDialog')
+                    authMode = authMode === 'register' ? 'login' : 'register';
+                    if (authMode === 'login') {
+                        userStateDialog.innerHTML = '<p>Logging In</p>';
+                        submitButton.textContent = 'Log in';
+                    }
+                    else if (authMode === 'register') {
+                        userStateDialog.innerHTML = '<p>Signing Up</p>';
+                        submitButton.textContent = 'Sign Up';
 
-                submitButton.addEventListener('click'), async (event) => {
+                    }
+                });
+                
+                
+                submitButton.addEventListener('click', async (event) => {
+                    console.log("meowoewoer")
                     event.preventDefault();
+
+                    const endpoint = authMode === 'register'
+                        ? '/api/users/register'
+                        : '/api/users/login'
 
                     const formData = new FormData(userForm);
                     const info = {
-                        username: formData.get('username'),
-                        password: formData.get('password'),
+                        username: String(formData.get('username') || '').trim(),
+                        password: String(formData.get('password') || '').trim(),
                     };
 
                     try {
-                        const response = await fetch('/api/users/register', {
+                        const response = await fetch(endpoint, {
                             method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(info),
-
                         });
 
+                        const result = await response.json().catch(() => ({}));
+
                         if (!response.ok) {
-                            throw new Error("signup failed at backend");
+                            throw new Error(result.error || 'auth failed D:');
                         }
 
-                        // CODING HERE RN
+                        console.log('Auth passed', result);
+                        newOverlay.remove();
+                        
+                    } catch (err) {
+                        console.error('Registration failed:', err);
+                        alert(err.message || 'Registration failed');
                     }
-                    catch (err) {
-
-                    }
-                }
+                });
 
                 newOverlay.querySelector('.closeOverlayButton').addEventListener('click', () => {
                     newOverlay.remove();

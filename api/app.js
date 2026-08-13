@@ -65,94 +65,61 @@ app.get('/api/users', (req, res) => {
 });
 
 app.post('/api/users/register', (req, res) => {
-    const {username, password} = req.body;
+    const { username, password } = req.body;
+    const cleanUsername = String(username || '').trim();
+    const cleanPassword = String(password || '').trim();
 
-    if (!username || !password) {
-        return res.status(400).json( { error: 'Bad request: missing user/password' });
-    }
-});
-
-
-
-
-
-
-
-// note endpoints!
-
-app.get('/api/notes', (req, res) => {
-    res.json(notes);
-});
-
-app.post('/api/notes', (req, res) => {
-    const { title, text_content, x_position, y_position, category, due_date, priority, size, opacity} = req.body;
-
-    if (title == null || text_content == null || x_position == null || y_position == null || category == null || due_date == null || priority == null || size == null || opacity == null) {
-        return res.status(400).json({ error: 'Missing required fields :3' });
+    if (!cleanUsername || !cleanPassword) {
+        return res.status(400).json({ error: 'Bad request: missing user/password' });
     }
 
-    const newNote = {
-        id: crypto.randomUUID(),
-        title,
-        text_content,
-        x_position,
-        y_position,
-        due_date,
-        priority,
-        category,
-        created_at: new Date().toISOString(),
-        size,
-        opacity
+    if (users[cleanUsername]) {
+        return res.status(409).json({ error: 'this username is taken, please sign in uwu' });
+    }
+
+    const passwordHash = crypto.createHash('sha256').update(cleanPassword).digest('hex');
+    users[cleanUsername] = {
+        username: cleanUsername,
+        password: passwordHash
     };
 
-    notes.push(newNote);
-    res.status(201).json(newNote);
+    saveUsersToFile();
+
+    return res.status(201).json({
+        message: 'User registered successfully',
+        username: cleanUsername
+    });
 });
 
 
-//endpoints for getting, updating, and deleting a note by ID
-app.get('/api/notes/:id', (req, res) => {
-    const noteId = req.params.id;
-    const note = notes.find(note => note.id === noteId);
+app.post('/api/users/login', (req, res) => {
+    const { username, password } = req.body;
 
-    if (!note) {
-        return res.status(404).json({ error: 'Note not found, 404....' });
+    const cleanUsername = String(username || '').trim();
+    const cleanPassword = String(password || '').trim();
+
+    if (!cleanUsername || !cleanPassword) {
+        return res.status(400).json({ error: 'Bad request: missing user/password' });
     }
 
-    res.json(note);
-});
+    const foundUser = users[cleanUsername];
 
-app.patch('/api/notes/:id', (req, res) => { 
-    const noteId = req.params.id;
-    const note = notes.find(note => note.id === noteId);
-    
-    if (!note) {
-        return res.status(404).json({ error: 'Note not found, 404....' });
+    if (!foundUser) {
+        return res.status(401).json({error: 'Invalid user/password'});
     }
 
-    const { x_position, y_position, opacity, title, text_content, category, due_date, priority, size } = req.body;
+    const enteredHash = crypto
+        .createHash('sha256')
+        .update(cleanPassword)
+        .digest('hex');
 
-    if (x_position !== undefined) note.x_position = x_position;
-    if (y_position !== undefined) note.y_position = y_position;
-    if (opacity !== undefined) note.opacity = opacity;
-    if (title !== undefined) note.title = title;
-    if (text_content !== undefined) note.text_content = text_content;
-    if (category !== undefined) note.category = category;
-    if (due_date !== undefined) note.due_date = due_date;
-    if (priority !== undefined) note.priority = priority;
-    if (size !== undefined) note.size = size;
-
-
-    res.status(200).json(note);
-});
-
-app.delete('/api/notes/:id', (req, res) => {
-    const noteId = req.params.id;
-    const noteIndex = notes.findIndex(note => note.id === noteId);
-
-    if (noteIndex === -1) {
-        return res.status(404).json ({error: 'Note not foundddd, 404....'});
+    if (enteredHash !== foundUser.password) {
+        return res.status(401).json({ error: 'Invalid user/password' });
     }
-    notes.splice(noteIndex, 1);
-    res.status(200).json({ message: 'Note deleted successfully' });
+
+    return res.status(200).json({
+        message: 'Login Success!!',
+        username: cleanUsername
+    });
 });
+
