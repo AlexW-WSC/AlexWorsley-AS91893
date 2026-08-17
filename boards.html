@@ -64,7 +64,10 @@
                     await fetch(`/api/notes/${noteId}`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ opacity })
+                        body: JSON.stringify({ 
+                            opacity,
+                            username: localStorage.getItem('currentUser')
+                        })
                     });
                 } catch (error) {
                     console.error('Failed to persist note opacity:', error);
@@ -187,7 +190,8 @@
 
             // the main function that loads the notes from the backend and renders them on the board
             async function drawLoadNotes() {
-                const response = await fetch('/api/notes');
+                const username = localStorage.getItem('currentUser');
+                const response = await fetch(`/api/notes?username=${username}`);
                 if (!response.ok) throw new Error('Failed to load notes :C');
                 const notes = await response.json();
                 const board = document.getElementById('notesBoard');
@@ -288,7 +292,12 @@
                                 await fetch(`/api/notes/${note.id}`, {
                                     method: 'PATCH',
                                     headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ x_position: left, y_position: top })
+                                    body: JSON.stringify({ 
+                                        x_position: left, 
+                                        y_position: top,
+                                        username: localStorage.getItem('currentUser')
+
+                                    })
                                     });
                                 console.log('Note position updated:', { id: note.id, x_position: left, y_position: top });
                             } catch (error) {
@@ -313,7 +322,11 @@
             // selfexplanatory
             async function deleteNote(noteId) {
                 const response = await fetch(`/api/notes/${noteId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json '},
+                    body: JSON.stringify({
+                        username: localStorage.getItem('currentUser')
+                    })
                 });
                 if (!response.ok) throw new Error('Failed to delete note :C');
                 console.log('Note deleted:', noteId);
@@ -481,6 +494,7 @@
                     const priority = newOverlay.querySelector('.overlay-priority').value;
                     const size = newOverlay.querySelector('.overlay-size').value;
                     const opacity = parseFloat(newOverlay.querySelector('.overlay-opacity').value) / 100;
+                    
 
                     //post(new) or patch(edit)
                     try {
@@ -497,7 +511,8 @@
                                     due_date: dueDate,
                                     priority,
                                     size,
-                                    opacity
+                                    opacity,
+                                    username: localStorage.getItem('currentUser')
                                 })
                             });
 
@@ -514,7 +529,8 @@
                                     due_date: dueDate,
                                     priority,
                                     size,
-                                    opacity
+                                    opacity,
+                                    username: localStorage.getItem('currentUser')
                                 })
                             });
 
@@ -533,10 +549,32 @@
                 CreateNoteOverlay(true);
             });
 
-        
-            document.getElementById('userOverlayButton').addEventListener('click', () => {
-                CreateUserOverlay();
-            });
+            const userButton = document.getElementById('userOverlayButton');
+
+            function updateUserButton() {
+                const currentUser = localStorage.getItem('currentUser')
+                if (currentUser) {
+                    //signed in 
+                    userButton.textContent = "Log Out";
+                    userButton.onclick = logout;
+                }
+
+                else {
+                    // not signed in
+                    userButton.textContent = "Sign Up & Sign In"
+                    userButton.onclick = () => CreateUserOverlay();
+
+                }
+            }
+
+            function logout() {
+                localStorage.removeItem('currentUser');
+                // clear notes 
+                document.getElementById('notesBoard').innerHTML = '';
+                updateUserButton();
+
+
+            }
 
             function CreateUserOverlay() {
                 const newOverlay = document.createElement('div');
@@ -585,6 +623,8 @@
                 const submitButton = newOverlay.querySelector('.submitUserButton');
                 let authMode = 'register';
                 
+
+
                 swapUserButton.addEventListener('click', () => {
                     // if authmode is register set it to login, otherwise register
                     const userStateDialog = newOverlay.querySelector('.userStateDialog')
@@ -602,7 +642,7 @@
                 
                 
                 submitButton.addEventListener('click', async (event) => {
-                    console.log("meowoewoer")
+                    console.log("request got client-side")
                     event.preventDefault();
 
                     const endpoint = authMode === 'register'
@@ -630,6 +670,10 @@
 
                         console.log('Auth passed', result);
                         newOverlay.remove();
+                        // saves user to browser storage!
+                        localStorage.setItem('currentUser', info.username)
+                        updateUserButton();
+                        drawLoadNotes();
                         
                     } catch (err) {
                         console.error('Registration failed:', err);
@@ -641,6 +685,12 @@
                     newOverlay.remove();
                 });
             }
+
+
+            // stuff to do on page load
+            document.addEventListener("DOMContentLoaded", function() {
+                updateUserButton();
+            });
         </script>
     </main>
 </body>

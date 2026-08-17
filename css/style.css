@@ -297,8 +297,8 @@ img {
 /* note + overlay category colours */
 .note.subjects,
 .overlay.subjects {
-    --note-colour: #b7aebf;
-    --note-dark-colour: #E6DBF0;
+    --note-colour: #E6DBF0;
+    --note-dark-colour: #b7aebf;
     --note-outline-colour: #6f4c50;
 }
 
@@ -439,7 +439,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: space-evenly;
-    background: var(--note-colour);
+    background: var(--note-dark-colour);
     font-size: 1.1em;
     border-right: 0.1rem solid var(--note-outline-colour);
     padding: 0.2rem 0.4rem;
@@ -455,7 +455,6 @@ img {
 
 .overlay > .noteMenu > .topbox > div > p {
     margin: 0;
-    white-space: nowrap;
 }
 
 .overlay > .noteMenu > .topbox > div > button{ 
@@ -485,16 +484,21 @@ img {
 }
 
 .overlay > .noteMenu > .content > textarea {
-    padding: 0.5rem 0.5rem;
     width: 100%;
     height: 100%;
     resize: none;
     box-sizing: border-box;
     background: none;
-    overflow: scroll;
     white-space: nowrap;
     text-wrap: wrap;
+
 }
+
+.overlay > .noteMenu > .content > textarea::-webkit-scrollbar-track-piece {
+    background: var(--note-dark-colour);
+    
+}
+
 
 .overlay > .noteMenu > .bottombox {
     display: grid;
