@@ -97,6 +97,10 @@ img {
     font-family: 'LINE Seed', sans-serif;
 }
 
+.topnav > div > button {
+    background-color: #F9EEED;
+}
+
 /* next layer of UI - board and filter */
 
 .boardUIContainer {
@@ -350,6 +354,7 @@ img {
 }
 
 .note > .content .note-body {
+    font-family: 'LINE Seed', sans-serif;
     white-space: pre-wrap;
     word-break: break-word;
     line-height: 1.4;
@@ -397,6 +402,19 @@ img {
     width: 100%;
     object-fit: contain;
 
+}
+
+
+#logInText {
+    position: fixed;
+    top: calc(9vh + (91vh / 2));
+    left: 50%;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 50%;
 }
 
 /* overlay styles */

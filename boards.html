@@ -34,7 +34,7 @@
         <div class="filterUI">    
             <select id="categoryFilter" class="categoryfilter">
                 <!--- Categories. base category is 'select a category' in order to not bork it back to 100 for all when the page reloads.-->
-                <option value="">Select a Category..</option> 
+                <option value=""> (Opacity) Category..</option> 
                 <option value="all">All Categories</option>
                 <option value="subjects">Subjects</option>
                 <option value="events">Events</option>
@@ -47,16 +47,17 @@
         
     <div class="removeNoteArea">
     </div>
-
+    <p id="logInText">Click the Sign Up & Sign In button above to start creating notes!</p>
     <div id="notesBoard" class="board">
         <!---notes inserted here--> 
     </div>
 
         <script>
             // JS code for handling note interactions with the API backend~
+            
             const categoryFilter = document.getElementById('categoryFilter');
             const opacitySlider = document.getElementById('opacitySlider');
-
+            const logInText = document.getElementById('logInText')
 
             // Functions to persist note opacity to the backend/make it work
             async function patchNoteOpacity(noteId, opacity) {
@@ -200,11 +201,18 @@
                 // iterate between each note
                 notes.forEach((note, index) => {
                     
-                    // hardcoded sht for the note sizes, may improve in future
+                    // hardcoded sht for the note sizes & colours!, may improve in future
                     const sizeDict = {
                         'Small': 0.8,
                         'Medium': 1.0,
                         'Large': 1.2,
+                    }
+
+                    const priorityColourDict = {
+                        'None': '#012622',
+                        'Low': '#2E7D32',
+                        'Medium': '#B26A00',
+                        'High': '#B3261E',
                     }
                     
                     // aaaall the note element stuff 
@@ -219,6 +227,7 @@
                     noteElement.style.zIndex = String(index + 1);
                     const scale = sizeDict[note.size] || 1.0;
                     noteElement.style.setProperty('--note-scale', scale);
+                    const priorityColour = priorityColourDict[note.priority]                    
                     noteElement.classList.add(note.category.toLowerCase());
                     // this is the actual note html content - (title, edit, body, category) - need to add date?
                     noteElement.innerHTML = `
@@ -228,7 +237,7 @@
                         </div>
                         <div class="content">
                             <div class="note-body">${renderNoteBodyContent(note.text_content)}</div>
-                            <span class="category">${note.category}</span>
+                            <span class="category" style="color: ${priorityColour || priorityColourDict['None']};">${note.category}</span>
                         </div>`;
                     board.appendChild(noteElement);
                     
@@ -546,23 +555,30 @@
 
             //create overlay (new = true)
             document.getElementById('addNoteButton').addEventListener('click', () => {
+                const currentUser = localStorage.getItem('currentUser')
+                if (currentUser) {
                 CreateNoteOverlay(true);
+                }
+
             });
 
             const userButton = document.getElementById('userOverlayButton');
 
-            function updateUserButton() {
+            function updateUserStuff() {
                 const currentUser = localStorage.getItem('currentUser')
                 if (currentUser) {
                     //signed in 
-                    userButton.textContent = "Log Out";
+                    userButton.textContent = `${currentUser}: Log Out`;
                     userButton.onclick = logout;
+                    logInText.style.opacity = 0;
                 }
 
                 else {
                     // not signed in
                     userButton.textContent = "Sign Up & Sign In"
                     userButton.onclick = () => CreateUserOverlay();
+                    logInText.style.opacity = 0.5;
+
 
                 }
             }
@@ -571,7 +587,7 @@
                 localStorage.removeItem('currentUser');
                 // clear notes 
                 document.getElementById('notesBoard').innerHTML = '';
-                updateUserButton();
+                updateUserStuff();
 
 
             }
@@ -594,7 +610,7 @@
                             <p>User Authentication</p>
                         </div>
                         <div>
-                            <p class="userStateDialog"> Signing Up</p>
+                            <p class="userStateDialog"><b> Signing Up</b></p>
                             <p>•</p>
                             <button type="button" class="swapUserFormButton">
                                 <img src="/assets/swap_icon.png">
@@ -608,7 +624,7 @@
                             <label for="password">Password:</label>
                             <input type="password" id="password" name="password" required>
                         </form>
-                        <p>Placeholder Text</p>
+                        <p class="loginFlavourText">Registration Form!!</p>
                     </div>
                     <div class="bottombox">
                         <button type="button" class="submitUserButton">Sign Up</button>
@@ -628,14 +644,17 @@
                 swapUserButton.addEventListener('click', () => {
                     // if authmode is register set it to login, otherwise register
                     const userStateDialog = newOverlay.querySelector('.userStateDialog')
+                    const loginFlavourText = newOverlay.querySelector('.loginFlavourText')
                     authMode = authMode === 'register' ? 'login' : 'register';
                     if (authMode === 'login') {
-                        userStateDialog.innerHTML = '<p>Logging In</p>';
+                        userStateDialog.innerHTML = '<p><b>Logging In</b></p>';
                         submitButton.textContent = 'Log in';
+                        loginFlavourText.textContent = "Returning user ~"
                     }
                     else if (authMode === 'register') {
-                        userStateDialog.innerHTML = '<p>Signing Up</p>';
+                        userStateDialog.innerHTML = '<p><b>Signing Up</b></p>';
                         submitButton.textContent = 'Sign Up';
+                        loginFlavourText.textContent = "Registration Form"
 
                     }
                 });
@@ -672,8 +691,10 @@
                         newOverlay.remove();
                         // saves user to browser storage!
                         localStorage.setItem('currentUser', info.username)
-                        updateUserButton();
+                        updateUserStuff();
                         drawLoadNotes();
+                        
+
                         
                     } catch (err) {
                         console.error('Registration failed:', err);
@@ -689,7 +710,10 @@
 
             // stuff to do on page load
             document.addEventListener("DOMContentLoaded", function() {
-                updateUserButton();
+                updateUserStuff();
+
+                const currentUser = localStorage.getItem("currentUser")
+                
             });
         </script>
     </main>
