@@ -262,3 +262,43 @@ app.delete('/api/notes/:id', (req, res) => {
     res.status(200).json({ message: 'Note deleted successfully' });
 });
 
+//userprefs 
+app.get('/api/users/preferences', (req, res) => {
+    const { username } = req.query;
+
+    if (!username || !users[username]) {
+        return res.status(404).json({ error: 'user not foundd' });
+    }
+
+    return res.json({
+        username,
+        theme: users[username].theme || 'light',
+        font: users[username].font || 'regular'
+    });
+});
+
+app.post('/api/users/preferences', (req, res) => {
+    const { username, theme, font } = req.body;
+    if (!username || !users[username]) {
+        return res.status(404).json({ error: "user not foundd"})
+    }
+
+    if (theme !== undefined && !['light', 'dark'].includes(theme)) {
+        return res.status(400).json({ error: "theme not valid lmao"})
+    }
+
+    if (font !== undefined && !['regular', 'dyslexic'].includes(font)) {
+        return res.status(400).json({ error: "font not valid!"})
+    }
+
+    if (theme !== undefined) users[username].theme = theme;
+    if (font !== undefined) users[username].font = font;
+
+    saveUsersToFile();
+
+    res.json({
+        username, 
+        theme: users[username].theme || 'light',
+        font: users[username].font || 'regular'
+    })
+})

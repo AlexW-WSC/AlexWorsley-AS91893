@@ -9,7 +9,9 @@
   },
   "no flippijng way this works": {
     "username": "no flippijng way this works",
-    "password": "ef4ffc0224b6d3cb282ca49f2377717a0bf7c2b138aceab57bbc411a5ee629d5"
+    "password": "ef4ffc0224b6d3cb282ca49f2377717a0bf7c2b138aceab57bbc411a5ee629d5",
+    "theme": "dark",
+    "font": "dyslexic"
   },
   "beyn": {
     "username": "beyn",
@@ -18,5 +20,15 @@
   "averyuwubaka": {
     "username": "averyuwubaka",
     "password": "412c6cd07b7f53707351190222cea41fbe66b06f00868322674a13a215b8d47f"
+  },
+  "alexhomeacc583@gmail.com": {
+    "username": "alexhomeacc583@gmail.com",
+    "password": "cbdfefc39c6302d85d72bca2c3f17a2013c6b1a228c06931f2c8ddcb1a797591"
+  },
+  "newuserr": {
+    "username": "newuserr",
+    "password": "17bdb29163e363d7e0370e16b44507d298b4dcae105fb739cbd827f4a9e0b6a0",
+    "theme": "light",
+    "font": "regular"
   }
 }

@@ -19,7 +19,17 @@
             <button id="userOverlayButton">Sign Up & Sign In</button>
         </div>
         <div>
-            <p>Search</p>
+            <button class="settings-button"><img src="/assets/settings_icon.png" id="settingsButton"></button>
+            <button id="lightThemeButton"><p>Light</p></button>
+            <p>/</p>
+            <button id="darkThemeButton"><p>Dark</p></button>
+            <p>•</p>
+            <button id="regularFontButton"><p>RegText</p></button>
+            <p>/</p>
+            <button id="dyslexicFontButton"><p>Dyslexic</p></button>
+
+
+            
         </div>
     </div>
     <div class="boardUIContainer">
@@ -57,7 +67,72 @@
             
             const categoryFilter = document.getElementById('categoryFilter');
             const opacitySlider = document.getElementById('opacitySlider');
-            const logInText = document.getElementById('logInText')
+            const logInText = document.getElementById('logInText');
+
+            const lightThemeButton = document.getElementById('lightThemeButton');
+            const darkThemeButton = document.getElementById('darkThemeButton');
+            const regularFontButton = document.getElementById('regularFontButton');
+            const dyslexicFontButton = document.getElementById('dyslexicFontButton');
+
+
+            //button logic for topnav!
+            lightThemeButton.addEventListener('click', async () => {
+                document.body.classList.remove('dark-theme');
+
+                await updateUserPrefs({
+                    theme: 'light'
+                });
+            });
+
+            darkThemeButton.addEventListener('click', async () => {
+                document.body.classList.add('dark-theme');
+
+                await updateUserPrefs({
+                    theme: 'dark'
+                });
+            });
+
+            regularFontButton.addEventListener('click', async () => {
+                document.body.classList.remove('dyslexic-font');
+
+                await updateUserPrefs({
+                    font: 'regular'
+                });
+            });
+
+            dyslexicFontButton.addEventListener('click', async () => {
+                document.body.classList.add('dyslexic-font');
+
+                await updateUserPrefs({
+                    font: 'dyslexic'
+                })
+            })
+
+
+
+
+            async function updateUserPrefs(changes) {
+                const username = localStorage.getItem('currentUser');
+                if (!username) { return; 
+
+                }
+
+                const response = await fetch ('/api/users/preferences', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        username,
+                        ...changes
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('failed to save user prefs...')
+                }
+
+                return response.json();
+
+            }
 
             // Functions to persist note opacity to the backend/make it work
             async function patchNoteOpacity(noteId, opacity) {
@@ -564,7 +639,8 @@
 
             const userButton = document.getElementById('userOverlayButton');
 
-            function updateUserStuff() {
+            //whenever a user signs in/out this saves
+            function updateUserLogin() {
                 const currentUser = localStorage.getItem('currentUser')
                 if (currentUser) {
                     //signed in 
@@ -587,7 +663,7 @@
                 localStorage.removeItem('currentUser');
                 // clear notes 
                 document.getElementById('notesBoard').innerHTML = '';
-                updateUserStuff();
+                updateUserLogin();
 
 
             }
@@ -607,7 +683,7 @@
                             <p>Back</p>
                         </div>
                         <div>
-                            <p>User Authentication</p>
+                            <p>User Auth</p>
                         </div>
                         <div>
                             <p class="userStateDialog"><b> Signing Up</b></p>
@@ -691,7 +767,7 @@
                         newOverlay.remove();
                         // saves user to browser storage!
                         localStorage.setItem('currentUser', info.username)
-                        updateUserStuff();
+                        updateUserLogin();
                         drawLoadNotes();
                         
 
@@ -710,7 +786,8 @@
 
             // stuff to do on page load
             document.addEventListener("DOMContentLoaded", function() {
-                updateUserStuff();
+                updateUserLogin();
+                updateUserPrefs();
 
                 const currentUser = localStorage.getItem("currentUser")
                 
