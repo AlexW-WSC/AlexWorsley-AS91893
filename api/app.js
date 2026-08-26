@@ -279,6 +279,7 @@ app.get('/api/users/preferences', (req, res) => {
 
 app.post('/api/users/preferences', (req, res) => {
     const { username, theme, font } = req.body;
+
     if (!username || !users[username]) {
         return res.status(404).json({ error: "user not foundd"})
     }
