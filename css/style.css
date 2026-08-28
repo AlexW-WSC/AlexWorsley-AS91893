@@ -72,9 +72,6 @@ body.dark-theme {
     --border-colour: #FFFFFF;
 }
 
-#settingButton {
-    pointer-events: none;
-}
 
 body.dark-theme #addNoteButton,
 body.dark-theme #settingsButton,
